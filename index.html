@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wanderers' Ledger — Trip Expense Splitter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1E9D8;
+    --paper-dark:#E3D8BF;
+    --ink:#2A2723;
+    --ink-soft:#5B564D;
+    --teal:#1E5A54;
+    --teal-dark:#123833;
+    --rust:#C1502E;
+    --gold:#B8933F;
+    --line:#cabf9f;
+    --good:#1E5A54;
+    --bad:#B3401F;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  html,body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  body{
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(42,39,35,0.05) 1px, transparent 0);
+    background-size:22px 22px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    padding:56px 24px 40px;
+    max-width:1100px;
+    margin:0 auto;
+    position:relative;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--rust);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:26px;height:1px;
+    background:var(--rust);
+    display:inline-block;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:clamp(38px,6vw,64px);
+    line-height:1.02;
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--teal);
+  }
+  .sub{
+    font-size:16px;
+    color:var(--ink-soft);
+    max-width:520px;
+    line-height:1.55;
+  }
+  .trip-name-row{
+    margin-top:28px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .trip-name-row label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+  }
+  #tripName{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:22px;
+    background:transparent;
+    border:none;
+    border-bottom:2px dotted var(--line);
+    color:var(--teal-dark);
+    padding:2px 4px;
+    min-width:220px;
+    outline:none;
+  }
+  #tripName:focus{border-bottom-color:var(--rust);}
+
+  /* ---------- Layout ---------- */
+  .wrap{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 24px 100px;
+    display:grid;
+    grid-template-columns:1.55fr 1fr;
+    gap:28px;
+    align-items:start;
+  }
+  @media(max-width:880px){
+    .wrap{grid-template-columns:1fr;}
+  }
+
+  .card{
+    background:#fbf8f0;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:26px 26px 28px;
+    box-shadow:0 1px 0 rgba(42,39,35,0.03);
+  }
+  .card + .card{margin-top:24px;}
+  .card h2{
+    font-family:'Fraunces',serif;
+    font-size:20px;
+    font-weight:600;
+    margin:0 0 4px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .card h2 .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--rust);
+    border:1px solid var(--rust);
+    border-radius:50%;
+    width:20px;height:20px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .card .hint{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 20px;
+  }
+
+  /* ---------- Form elements ---------- */
+  label.field-label{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  input[type=text], input[type=number], select{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    padding:11px 12px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:#fff;
+    color:var(--ink);
+    outline:none;
+    transition:border-color .15s;
+  }
+  input:focus, select:focus{border-color:var(--teal);}
+  .row{display:flex; gap:14px; flex-wrap:wrap;}
+  .row > div{flex:1; min-width:130px;}
+
+  button{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    border:none;
+    border-radius:3px;
+    padding:11px 20px;
+    transition:transform .1s, background .15s;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{
+    background:var(--teal);
+    color:#fdfaf2;
+  }
+  .btn-primary:hover{background:var(--teal-dark);}
+  .btn-ghost{
+    background:transparent;
+    color:var(--rust);
+    border:1px solid var(--rust);
+    padding:9px 16px;
+  }
+  .btn-ghost:hover{background:rgba(193,80,46,0.08);}
+  .btn-row{margin-top:18px; display:flex; gap:10px;}
+
+  /* member chips */
+  #memberInputs{display:flex; flex-direction:column; gap:10px; margin-top:16px;}
+  .member-chip{display:flex; align-items:center; gap:10px;}
+  .member-chip .idx{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--gold);
+    width:22px;
+  }
+
+  /* expense list */
+  #expenseList{list-style:none; margin:20px 0 0; padding:0; display:flex; flex-direction:column; gap:0;}
+  #expenseList li{
+    display:grid;
+    grid-template-columns:auto 1fr auto auto auto;
+    align-items:center;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px dashed var(--line);
+    font-size:14px;
+  }
+  #expenseList li:last-child{border-bottom:none;}
+  .cat-icon{
+    width:30px;height:30px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--paper-dark);
+    flex-shrink:0;
+  }
+  .cat-icon svg{width:15px;height:15px;stroke:var(--teal-dark);}
+  .exp-desc{font-weight:500;}
+  .exp-meta{font-size:12px;color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
+  .exp-amount{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  .del-btn{
+    background:none;border:none;color:var(--ink-soft);
+    font-size:16px; padding:2px 6px; cursor:pointer;
+    line-height:1;
+  }
+  .del-btn:hover{color:var(--rust);}
+  .empty-note{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:14px 0;
+  }
+
+  /* ---------- Summary sidebar ---------- */
+  .sticky{position:sticky; top:24px;}
+  .stat-block{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:10px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .stat-block:last-child{border-bottom:none;}
+  .stat-label{font-size:13px; color:var(--ink-soft);}
+  .stat-value{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:19px; font-weight:600;
+    color:var(--teal-dark);
+  }
+  #balanceList{margin-top:16px; display:flex; flex-direction:column; gap:9px;}
+  .balance-row{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:13.5px;
+    padding:8px 10px;
+    border-radius:3px;
+    background:var(--paper-dark);
+  }
+  .balance-row .name{font-weight:500;}
+  .balance-row .amt{font-family:'IBM Plex Mono',monospace; font-weight:600;}
+  .amt.pos{color:var(--good);}
+  .amt.neg{color:var(--bad);}
+
+  /* ---------- Settlement receipt (signature element) ---------- */
+  .receipt-wrap{
+    position:relative;
+    background:#fffdf7;
+    border:1px solid var(--line);
+    padding:28px 26px 22px;
+    margin-top:8px;
+    --scallop: radial-gradient(circle 7px at 7px 0, transparent 7px, #F1E9D8 7.5px) top / 14px 14px repeat-x,
+               radial-gradient(circle 7px at 7px 7px, transparent 7px, #F1E9D8 7.5px) bottom / 14px 14px repeat-x;
+    -webkit-mask: var(--scallop);
+            mask: var(--scallop);
+  }
+  
+  .receipt-title{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:18px;
+    text-align:center;
+    color:var(--teal-dark);
+    margin:0 0 4px;
+  }
+  .receipt-sub{
+    text-align:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:18px;
+  }
+  .receipt-divider{
+    border:none;
+    border-top:1px dashed var(--line);
+    margin:14px 0;
+  }
+  .settle-line{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13.5px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:7px 0;
+    color:var(--ink);
+  }
+  .settle-line .arrow{color:var(--rust); padding:0 6px;}
+  .settle-line .amt{font-weight:600;}
+  .receipt-empty{
+    text-align:center;
+    font-size:13px;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:10px 0 4px;
+  }
+  .stamp{
+    position:absolute;
+    top:16px; right:20px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    color:var(--rust);
+    border:2px solid var(--rust);
+    border-radius:50%;
+    width:64px;height:64px;
+    display:flex;
+    align-items:center;justify-content:center;
+    text-align:center;
+    transform:rotate(-14deg);
+    opacity:.85;
+  }
+
+  .pdf-btn-row{
+    padding:16px 26px 24px;
+    border-top:1px solid var(--line);
+  }
+  .pdf-btn-row button{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    padding:10px 24px 50px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+
+  /* ---------- Printable receipt (used for PDF export) ---------- */
+  #printReceipt{ display:none; }
+
+  @media print{
+    body *{ visibility:hidden; }
+    #printReceipt, #printReceipt *{ visibility:visible; }
+    #printReceipt{
+      display:block;
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      padding:40px;
+      background:#fff;
+    }
+    .pr-title{
+      font-family:'Fraunces',serif;
+      font-size:26px;
+      font-weight:700;
+      color:#123833;
+      margin:0 0 2px;
+    }
+    .pr-eyebrow{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#C1502E;
+      margin-bottom:10px;
+    }
+    .pr-meta{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:11px;
+      color:#5B564D;
+      margin-bottom:18px;
+    }
+    .pr-section-title{
+      font-family:'Inter',sans-serif;
+      font-weight:600;
+      font-size:13px;
+      margin:20px 0 8px;
+      color:#2A2723;
+    }
+    .pr-hr{ border:none; border-top:1px dashed #cabf9f; margin:14px 0; }
+    .pr-row{
+      display:flex;
+      justify-content:space-between;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:12.5px;
+      padding:5px 0;
+      color:#2A2723;
+    }
+    .pr-row .sub{ color:#5B564D; font-size:11px; }
+    .pr-row .amt{ font-weight:600; }
+    .pr-settle .amt{ color:#C1502E; }
+    .pr-footer{
+      margin-top:26px;
+      font-family:'Fraunces',serif;
+      font-style:italic;
+      font-size:12px;
+      color:#5B564D;
+      text-align:center;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Shared Travel Ledger</div>
+  <h1>Split the trip.<br><em>Not the friendship.</em></h1>
+  <p class="sub">Log what everyone paid for — food, tickets, stays, cabs — and the ledger works out exactly who owes whom, down to the last rupee.</p>
+  <div class="trip-name-row">
+    <label for="tripName">Trip</label>
+    <input type="text" id="tripName" value="Goa, Dec 2026" />
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- LEFT COLUMN -->
+  <div>
+    <div class="card" id="setupCard">
+      <h2><span class="num">1</span> Who's travelling</h2>
+      <p class="hint">Enter how many people are on this trip, then name them.</p>
+      <div class="row">
+        <div>
+          <label class="field-label">Total members</label>
+          <input type="number" id="memberCount" min="1" max="30" placeholder="e.g. 5">
+        </div>
+        <div style="flex:0 0 auto; align-self:flex-end;">
+          <button class="btn-primary" onclick="generateMemberInputs()">Set up members</button>
+        </div>
+      </div>
+      <div id="memberInputs"></div>
+      <div class="btn-row" id="confirmRow" style="display:none;">
+        <button class="btn-primary" onclick="confirmMembers()">Save members</button>
+      </div>
+    </div>
+
+    <div class="card" id="expenseCard" style="display:none;">
+      <h2><span class="num">2</span> Log an expense</h2>
+      <p class="hint">Add every cost as it happens — food, transport, stay, or anything else.</p>
+      <div class="row">
+        <div>
+          <label class="field-label">Description</label>
+          <input type="text" id="expDesc" placeholder="e.g. Dinner at the beach shack">
+        </div>
+        <div>
+          <label class="field-label">Amount (₹)</label>
+          <input type="number" id="expAmount" placeholder="0" min="0" step="0.01">
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px;">
+        <div>
+          <label class="field-label">Paid by</label>
+          <select id="expPaidBy"></select>
+        </div>
+        <div>
+          <label class="field-label">Category</label>
+          <select id="expCategory">
+            <option value="food">Food</option>
+            <option value="transport">Transport</option>
+            <option value="stay">Stay</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="addExpense()">Add expense</button>
+      </div>
+
+      <ul id="expenseList"></ul>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="sticky">
+    <div class="card">
+      <h2><span class="num">3</span> Trip totals</h2>
+      <div class="stat-block">
+        <span class="stat-label">Total trip expense</span>
+        <span class="stat-value" id="totalExpense">₹0</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">Fair share per person</span>
+        <span class="stat-value" id="perHeadShare">₹0</span>
+      </div>
+      <div id="balanceList"></div>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div class="receipt-wrap">
+        <div class="receipt-inner">
+          <p class="receipt-title">Settlement Receipt</p>
+          <p class="receipt-sub">Who pays whom</p>
+          <div id="settlementList"></div>
+        </div>
+      </div>
+      <div class="pdf-btn-row">
+        <button class="btn-primary" id="pdfBtn" onclick="downloadReceiptPDF()">⬇ Save receipt as PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Crafted by Smit Nayak
+  <br>Every rupee accounted for — split evenly, settled fairly.
+  <br>
+        &copy; copyright 2026 
+
+</footer>
+
+<div id="printReceipt"></div>
+
+<script>
+let members = [];       // {id, name}
+let expenses = [];      // {id, desc, amount, paidBy, category}
+let nextExpenseId = 1;
+
+const icons = {
+  food: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4Z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
+  transport: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>',
+  stay: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>',
+  other: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>'
+};
+
+function fmt(n){
+  const v = Math.round(n * 100) / 100;
+  return '₹' + v.toLocaleString('en-IN', {minimumFractionDigits: v % 1 === 0 ? 0 : 2, maximumFractionDigits: 2});
+}
+
+function generateMemberInputs(){
+  const count = parseInt(document.getElementById('memberCount').value, 10);
+  const container = document.getElementById('memberInputs');
+  container.innerHTML = '';
+  if(!count || count < 1){
+    alert('Enter how many members are on the trip first.');
+    return;
+  }
+  for(let i = 0; i < count; i++){
+    const div = document.createElement('div');
+    div.className = 'member-chip';
+    div.innerHTML = `
+      <span class="idx">${String(i+1).padStart(2,'0')}</span>
+      <input type="text" placeholder="Member ${i+1} name" data-idx="${i}" class="member-name-input">
+    `;
+    container.appendChild(div);
+  }
+  document.getElementById('confirmRow').style.display = 'flex';
+}
+
+function confirmMembers(){
+  const inputs = document.querySelectorAll('.member-name-input');
+  const newMembers = [];
+  inputs.forEach((inp, i) => {
+    const name = inp.value.trim() || `Member ${i+1}`;
+    newMembers.push({ id: i+1, name });
+  });
+  members = newMembers;
+  document.getElementById('expenseCard').style.display = 'block';
+  refreshPaidBySelect();
+  renderAll();
+}
+
+function refreshPaidBySelect(){
+  const sel = document.getElementById('expPaidBy');
+  sel.innerHTML = members.map(m => `<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+}
+
+function addExpense(){
+  const desc = document.getElementById('expDesc').value.trim();
+  const amount = parseFloat(document.getElementById('expAmount').value);
+  const paidBy = parseInt(document.getElementById('expPaidBy').value, 10);
+  const category = document.getElementById('expCategory').value;
+
+  if(!desc){ alert('Add a short description for this expense.'); return; }
+  if(!amount || amount <= 0){ alert('Enter a valid amount greater than 0.'); return; }
+  if(!paidBy){ alert('Set up members before adding an expense.'); return; }
+
+  expenses.push({ id: nextExpenseId++, desc, amount, paidBy, category });
+  document.getElementById('expDesc').value = '';
+  document.getElementById('expAmount').value = '';
+  renderAll();
+}
+
+function deleteExpense(id){
+  expenses = expenses.filter(e => e.id !== id);
+  renderAll();
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function renderExpenseList(){
+  const list = document.getElementById('expenseList');
+  if(expenses.length === 0){
+    list.innerHTML = '<p class="empty-note">No expenses logged yet — add the first one above.</p>';
+    return;
+  }
+  list.innerHTML = expenses.map(e => {
+    const payer = members.find(m => m.id === e.paidBy);
+    return `
+      <li>
+        <span class="cat-icon">${icons[e.category] || icons.other}</span>
+        <span>
+          <div class="exp-desc">${escapeHtml(e.desc)}</div>
+          <div class="exp-meta">Paid by ${escapeHtml(payer ? payer.name : 'Unknown')}</div>
+        </span>
+        <span></span>
+        <span class="exp-amount">${fmt(e.amount)}</span>
+        <button class="del-btn" onclick="deleteExpense(${e.id})" title="Remove">✕</button>
+      </li>
+    `;
+  }).join('');
+}
+
+function computeBalances(){
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  const share = members.length ? total / members.length : 0;
+  const paidByMember = {};
+  members.forEach(m => paidByMember[m.id] = 0);
+  expenses.forEach(e => { paidByMember[e.paidBy] = (paidByMember[e.paidBy] || 0) + e.amount; });
+
+  const balances = members.map(m => ({
+    id: m.id,
+    name: m.name,
+    paid: paidByMember[m.id] || 0,
+    balance: (paidByMember[m.id] || 0) - share
+  }));
+
+  return { total, share, balances };
+}
+
+function computeSettlement(balances){
+  // Greedy debt-simplification: match biggest debtor with biggest creditor.
+  const creditors = balances.filter(b => b.balance > 0.01).map(b => ({...b})).sort((a,b) => b.balance - a.balance);
+  const debtors = balances.filter(b => b.balance < -0.01).map(b => ({...b})).sort((a,b) => a.balance - b.balance);
+  const transactions = [];
+
+  let i = 0, j = 0;
+  while(i < debtors.length && j < creditors.length){
+    const debtor = debtors[i];
+    const creditor = creditors[j];
+    const amount = Math.min(-debtor.balance, creditor.balance);
+    if(amount > 0.01){
+      transactions.push({ from: debtor.name, to: creditor.name, amount });
+    }
+    debtor.balance += amount;
+    creditor.balance -= amount;
+    if(Math.abs(debtor.balance) < 0.01) i++;
+    if(Math.abs(creditor.balance) < 0.01) j++;
+  }
+  return transactions;
+}
+
+function renderSummary(){
+  const { total, share, balances } = computeBalances();
+  document.getElementById('totalExpense').textContent = fmt(total);
+  document.getElementById('perHeadShare').textContent = fmt(share);
+
+  const balanceList = document.getElementById('balanceList');
+  if(balances.length === 0){
+    balanceList.innerHTML = '';
+  } else {
+    balanceList.innerHTML = balances.map(b => {
+      const isPos = b.balance >= 0;
+      const label = isPos ? 'gets back' : 'owes';
+      return `
+        <div class="balance-row">
+          <span class="name">${escapeHtml(b.name)}</span>
+          <span class="amt ${isPos ? 'pos' : 'neg'}">${label} ${fmt(Math.abs(b.balance))}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const transactions = computeSettlement(balances);
+  const settlementDiv = document.getElementById('settlementList');
+  if(expenses.length === 0 || members.length === 0){
+    settlementDiv.innerHTML = '<p class="receipt-empty">Add members and expenses to see the settlement.</p>';
+  } else if(transactions.length === 0){
+    settlementDiv.innerHTML = '<p class="receipt-empty">Everyone has paid their fair share. Nothing to settle.</p>';
+  } else {
+    settlementDiv.innerHTML =
+      transactions.map(t => `
+        <div class="settle-line">
+          <span>${escapeHtml(t.from)} <span class="arrow">→</span> ${escapeHtml(t.to)}</span>
+          <span class="amt">${fmt(t.amount)}</span>
+        </div>
+      `).join('') + '<hr class="receipt-divider">';
+  }
+}
+
+function renderAll(){
+  renderExpenseList();
+  renderSummary();
+}
+
+function downloadReceiptPDF(){
+  if(members.length === 0 || expenses.length === 0){
+    alert('Set up members and add at least one expense before saving a receipt.');
+    return;
+  }
+
+  const tripName = document.getElementById('tripName').value || 'Trip';
+  const { total, share, balances } = computeBalances();
+  const transactions = computeSettlement(balances);
+  const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  let html = '';
+  html += '<p class="pr-eyebrow">Shared Travel Ledger</p>';
+  html += '<p class="pr-title">' + escapeHtml(tripName) + '</p>';
+  html += '<p class="pr-meta">Settlement Receipt &middot; Generated ' + today + '</p>';
+  html += '<hr class="pr-hr">';
+
+  html += '<p class="pr-section-title">Travellers</p>';
+  html += '<p class="pr-row"><span>' + members.map(m => escapeHtml(m.name)).join(' &middot; ') + '</span></p>';
+  html += '<hr class="pr-hr">';
+
+  html += '<p class="pr-section-title">Expense Log</p>';
+  expenses.forEach(e => {
+    const payer = members.find(m => m.id === e.paidBy);
+    html += '<div class="pr-row"><span>' + escapeHtml(e.desc) +
+      '<div class="sub">paid by ' + escapeHtml(payer ? payer.name : 'Unknown') + ' &middot; ' + escapeHtml(e.category) + '</div></span>' +
+      '<span class="amt">' + fmt(e.amount) + '</span></div>';
+  });
+  html += '<hr class="pr-hr">';
+
+  html += '<p class="pr-section-title">Trip Totals</p>';
+  html += '<div class="pr-row"><span>Total trip expense</span><span class="amt">' + fmt(total) + '</span></div>';
+  html += '<div class="pr-row"><span>Fair share per person</span><span class="amt">' + fmt(share) + '</span></div>';
+  html += '<hr class="pr-hr">';
+
+  html += '<p class="pr-section-title">Balances</p>';
+  balances.forEach(b => {
+    const isPos = b.balance >= 0;
+    html += '<div class="pr-row"><span>' + escapeHtml(b.name) + '</span><span class="amt">' +
+      (isPos ? 'gets back ' : 'owes ') + fmt(Math.abs(b.balance)) + '</span></div>';
+  });
+  html += '<hr class="pr-hr">';
+
+  html += '<p class="pr-section-title">Settlement &mdash; who pays whom</p>';
+  if(transactions.length === 0){
+    html += '<p class="pr-row">Everyone has paid their fair share. Nothing to settle.</p>';
+  } else {
+    transactions.forEach(t => {
+      html += '<div class="pr-row pr-settle"><span>' + escapeHtml(t.from) + ' &rarr; ' + escapeHtml(t.to) + '</span><span class="amt">' + fmt(t.amount) + '</span></div>';
+    });
+  }
+
+  html += '<p class="pr-footer">Every rupee accounted for &mdash; split evenly, settled fairly.</p>';
+
+  document.getElementById('printReceipt').innerHTML = html;
+
+  const originalTitle = document.title;
+  document.title = tripName.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '-settlement-receipt';
+  window.print();
+  document.title = originalTitle;
+}
+
+renderAll();
+</script>
+</body>
+</html>
